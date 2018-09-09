@@ -6,23 +6,25 @@
 
 题目分析
 
-	考察点：fastbin attack
+    考察点：fastbin attack
 
-	漏洞：chunk的填充范围可大于chunk的大小，覆盖到下面的chunk
+    漏洞：chunk的填充范围可大于chunk的大小，覆盖到下面的chunk
 
-	求出libc_base，修改malloc_hook内容为shellcode，执行malloc()，等于执行getshell
+    求出libc_base，修改malloc_hook内容为shellcode，执行malloc()，等于执行getshell
 
 第一步 求出libc_base
 
-	两种方法
+    两种方法
 
-	第一种  伪造一个大chunk a覆盖下一个大于0x80的chunk b，free掉下一个chunk b，然后show伪造的chunk a，得到chunk b的fd，fd指向main_arena
+  第一种  伪造一个大chunk a覆盖下一个大于0x80的chunk b，free掉下一个chunk b，然后show伪造的chunk a，得到chunk b的fd，fd指向main_arena
 
     alloc(0x60)
     alloc(0x40)
     fill(0, 0x60+0x10, 'a'*0x60 + p64(0) + p64(0x71))
 
-	新建两个块，用chunk0覆盖掉chunk1的头
+	
+    新建两个块，用chunk0覆盖掉chunk1的头
+
 ![image](https://github.com/lhc328/pwn/blob/master/picture/20170ctfbabyheap/2.png)
 	
     alloc(0x100)
@@ -34,20 +36,22 @@
     free(2)
     dump(1)
 
-	新建一个0x100的chunk2，填充chunk2，伪造一个chunk头，距离跟chunk1刚好适合修改了的chunk1的大小，这时我们把chunk1 free掉再申请，那么chunk1真的变成0x60大了，而且还刚好覆盖掉chunk2的fd和bk的位置。
+    新建一个0x100的chunk2，填充chunk2，伪造一个chunk头，距离跟chunk1刚好适合修改了的chunk1的大小，这时我们把chunk1 free掉再申请，那么chunk1真的变成0x60大了，而且还刚好覆盖掉chunk2的fd和bk的位置。
 
-	利用chunk1修复chunk2的头，再申请一个chunk3，以防chunk2被合并，把chunk2 free掉，再把chunk1 dump出来，main_arena就出来了
+    利用chunk1修复chunk2的头，再申请一个chunk3，以防chunk2被合并，把chunk2 free掉，再把chunk1 dump出来，main_arena就出来了
+
 
 ![image](https://github.com/lhc328/pwn/blob/master/picture/20170ctfbabyheap/3.png)
 ![image](https://github.com/lhc328/pwn/blob/master/picture/20170ctfbabyheap/4.png)
 
 
 
-求偏移：0x7f5d2bec3b78 - 0x 7f5d2bb28000 = 0x39bb78
+    求偏移：0x7f5d2bec3b78 - 0x 7f5d2bb28000 = 0x39bb78
 
-(靶机偏移是0x3a5678   与我机差值0x9b00)
+    (靶机偏移是0x3a5678   与我机差值0x9b00)
 
-	第二种  不同指针指向同一chunk，一个free，另一个show，便得到main_arena地址
+  第二种  不同指针指向同一chunk，一个free，另一个show，便得到main_arena地址
+
 
     alloc(0x10)
     alloc(0x10)
@@ -75,19 +79,23 @@
 
 第二步 修改malloc_hook内容
 
-	free掉两个chunk，然后修改chunk的fd为malloc_hook的地址，但系统会检测fd指向chunk的头size是否适合，所以我们找找malloc_hook地址前的数据，发现把地址偏移一下，便可构造出size为0x7f的chunk头，所以fd的内容应为malloc_hook地址加偏移量
+    free掉两个chunk，然后修改chunk的fd为malloc_hook的地址，但系统会检测fd指向chunk的头size是否适合，所以我们找找malloc_hook地址前的数据，发现把地址偏移一下，便可构造出size为0x7f的chunk头，所以fd的内容应为malloc_hook地址加偏移量
+
 
  ![image](https://github.com/lhc328/pwn/blob/master/picture/20170ctfbabyheap/5.png)
 
-malloc_hook偏移为0x3a5610
+    malloc_hook偏移为0x3a5610
+
 
  ![image](https://github.com/lhc328/pwn/blob/master/picture/20170ctfbabyheap/6.png)
 
-可见，malloc_hook上方存在0x7f，可以伪造头，只要把地址偏移一下就可以通过检查建立一个0x60的chunk，然后填充数据修改malloc内容。  偏移为 0x10+0x8+0x3+0x8。
+    可见，malloc_hook上方存在0x7f，可以伪造头，只要把地址偏移一下就可以通过检查建立一个0x60的chunk，然后填充数据修改malloc内容。  偏移为 0x10+0x8+0x3+0x8。
+
  ![image](https://github.com/lhc328/pwn/blob/master/picture/20170ctfbabyheap/7.png)
 
 
-shellcode依然由one_gadget取得
+    shellcode依然由one_gadget取得
+
  ![image](https://github.com/lhc328/pwn/blob/master/picture/20170ctfbabyheap/8.png)
 
 
