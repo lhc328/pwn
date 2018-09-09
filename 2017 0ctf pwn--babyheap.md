@@ -80,7 +80,7 @@
 
 第二步 修改malloc_hook内容
 
-    free掉两个chunk，然后修改chunk的fd为malloc_hook的地址，但系统会检测fd指向chunk的头size是否适合，所以我们找找malloc_hook地址前的数据，发现把地址偏移一下，便可构造出size为0x7f的chunk头，所以fd的内容应为malloc_hook地址加偏移量
+   free掉两个chunk，然后修改chunk的fd为malloc_hook的地址，但系统会检测fd指向chunk的头size是否适合，所以我们找找malloc_hook地址前的数据，发现把地址偏移一下，便可构造出size为0x7f的chunk头，所以fd的内容应为malloc_hook地址加偏移量
 
 
  ![image](https://github.com/lhc328/pwn/blob/master/picture/20170ctfbabyheap/5.png)
@@ -90,12 +90,12 @@
 
  ![image](https://github.com/lhc328/pwn/blob/master/picture/20170ctfbabyheap/6.png)
 
-    可见，malloc_hook上方存在0x7f，可以伪造头，只要把地址偏移一下就可以通过检查建立一个0x60的chunk，然后填充数据修改malloc内容。  偏移为 0x10+0x8+0x3+0x8。
+   可见，malloc_hook上方存在0x7f，可以伪造头，只要把地址偏移一下就可以通过检查建立一个0x60的chunk，然后填充数据修改malloc内容。  偏移为 0x10+0x8+0x3+0x8。
 
  ![image](https://github.com/lhc328/pwn/blob/master/picture/20170ctfbabyheap/7.png)
 
 
-    shellcode依然由one_gadget取得
+   shellcode依然由one_gadget取得
 
  ![image](https://github.com/lhc328/pwn/blob/master/picture/20170ctfbabyheap/8.png)
 
