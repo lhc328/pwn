@@ -1,6 +1,6 @@
 题目四个功能 alloc fill free dump
 
-![image](https://github.com/lhc328/pwn/picture/20170ctfbabyheap/1.png)
+![image](https://github.com/lhc328/pwn/picture/20170ctfbabyheap/1.png )
 
 （fast chunk 没有标志位 没有bk 不会合并）
 
