@@ -29,6 +29,7 @@ delete函数
 ​	申请多个chunk，利用off-by-one的漏洞，update chunk0修改chunk1的size，使其包含两个chunk，即overlap。把chunk1 free掉，这时系统认为chunk1为small chunk，便把它扔到main_arena处，申请与chunk1原来大小的chunk，chunk1的fd，bk的内容就会到了chunk2的fd和bk，因为指针2并没有free掉，view（2）就会出现main_arena的地址。
 
 ![image](https://github.com/lhc328/pwn/blob/master/picture/20180ctfbabyheap/5.png)
+
 chunk3的作用是防止chunk2被‘合并’。
 
 main_arena = 0x7f68ce3a0b78 - 0x58
@@ -54,7 +55,7 @@ delete(1)
 
 ![image](https://github.com/lhc328/pwn/blob/master/picture/20180ctfbabyheap/6.png)
 
-0x000055c05750c140中的 55 便是帮助我们malloc时通过检查的size大小。我们把地址偏移一下，main_arena+37放到chunk2的fd中，注意指针2虽然free掉，但我们还有chunk4。
+0x000055c05750c140中的 55 便是帮助我们malloc时通过检查的size大小。我们把地址偏移一下，main_arena+37放到chunk2的fd中，注意指针2虽然free掉，但我们还有chunk4。(内存不一定是55，有时是56或什么，多试几次就可以了)
 
 ![image](https://github.com/lhc328/pwn/blob/master/picture/20180ctfbabyheap/7.png)
 
