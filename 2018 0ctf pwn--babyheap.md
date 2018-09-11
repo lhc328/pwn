@@ -2,23 +2,23 @@
 
 题目四个功能alloc  update  delete  view
 
-![屏幕截图(87)](C:\Users\kOX\Pictures\Screenshots\屏幕截图(87).png)
+![image](https://github.com/lhc328/pwn/blob/master/picture/20180ctfbabyheap/1.png)
 
 我们利用ida找一下漏洞
 
 alloc函数里
 
-![屏幕截图(91)](C:\Users\kOX\Pictures\Screenshots\屏幕截图(91).png)
+![image](https://github.com/lhc328/pwn/blob/master/picture/20180ctfbabyheap/2.png)
 
 update函数里（漏洞之处）
 
-![屏幕截图(92)](C:\Users\kOX\Pictures\Screenshots\屏幕截图(92).png)
+![image](https://github.com/lhc328/pwn/blob/master/picture/20180ctfbabyheap/3.png)
 
 可写的长度多了一位，刚好可以修改下一个chunk头的size。 术语叫  off-by-one
 
 delete函数
 
-![屏幕截图(93)](C:\Users\kOX\Pictures\Screenshots\屏幕截图(93).png)
+![image](https://github.com/lhc328/pwn/blob/master/picture/20180ctfbabyheap/4.png)
 
 ## 利用漏洞思路
 
@@ -28,8 +28,7 @@ delete函数
 
 ​	申请多个chunk，利用off-by-one的漏洞，update chunk0修改chunk1的size，使其包含两个chunk，即overlap。把chunk1 free掉，这时系统认为chunk1为small chunk，便把它扔到main_arena处，申请与chunk1原来大小的chunk，chunk1的fd，bk的内容就会到了chunk2的fd和bk，因为指针2并没有free掉，view（2）就会出现main_arena的地址。
 
-![屏幕截图(94)](C:\Users\kOX\Pictures\Screenshots\屏幕截图(94).png)
-
+![image](https://github.com/lhc328/pwn/blob/master/picture/20180ctfbabyheap/5.png)
 chunk3的作用是防止chunk2被‘合并’。
 
 main_arena = 0x7f68ce3a0b78 - 0x58
@@ -53,11 +52,11 @@ delete(1)
 
 这步可以称是 鬼斧神工之作。看上去好像没做什么，实际上很重要，它把main_arena的bk修改了。
 
-![屏幕截图(95)](C:\Users\kOX\Pictures\Screenshots\屏幕截图(95).png)
+![image](https://github.com/lhc328/pwn/blob/master/picture/20180ctfbabyheap/6.png)
 
 0x000055c05750c140中的 55 便是帮助我们malloc时通过检查的size大小。我们把地址偏移一下，main_arena+37放到chunk2的fd中，注意指针2虽然free掉，但我们还有chunk4。
 
-![屏幕截图(86)](C:\Users\kOX\Pictures\Screenshots\屏幕截图(86).png)
+![image](https://github.com/lhc328/pwn/blob/master/picture/20180ctfbabyheap/7.png)
 
 alloc两个chunk，指针2就会指向main_arena+37处，我们就可以修改top chunk
 
