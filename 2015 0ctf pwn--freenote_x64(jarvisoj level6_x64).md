@@ -2,11 +2,11 @@
 
 题目类似记事本的功能
 
-![image](https://github.com/lhc328/pwn/blob/master/picture/20150ctffreenotex64level6x64/1.png)
+![image](https://raw.githubusercontent.com/lhc328/pwn/master/picture/20150ctffreenotex64level6x64/1.png)
 
 漏洞在free堆时没有进行检查
 
-![image](https://github.com/lhc328/pwn/blob/master/picture/20150ctffreenotex64level6x64/2.png)
+![image](https://raw.githubusercontent.com/lhc328/pwn/master/picture/20150ctffreenotex64level6x64/2.png)
 
 而且在glibc中，free之后不会清空堆中的内容，输入并没有在末尾加'\x00'截断，可以读取超过预定长度的内容。
 
@@ -35,28 +35,28 @@ delete(2)
 
 main_arena<-->  fd  chunk 0  bk <--->   fd    chunk 2   bk ---》main_arena
 
-![image](https://github.com/lhc328/pwn/blob/master/picture/20150ctffreenotex64level6x64/3.png)
+![image](https://raw.githubusercontent.com/lhc328/pwn/master/picture/20150ctffreenotex64level6x64/3.png)
 
 这时，新建两个0x8的chunk，覆盖掉chunk2，chunk0，由于new时没有清空堆，list时便会把堆地址和main_arena的地址泄露出来。
 
-![image](https://github.com/lhc328/pwn/blob/master/picture/20150ctffreenotex64level6x64/4.png)
+![image](https://raw.githubusercontent.com/lhc328/pwn/master/picture/20150ctffreenotex64level6x64/4.png)
 
 堆基地址
 
-![image](https://github.com/lhc328/pwn/blob/master/picture/20150ctffreenotex64level6x64/5.png)
+![image](https://raw.githubusercontent.com/lhc328/pwn/master/picture/20150ctffreenotex64level6x64/5.png)
 
 偏移为 0x242a000 - 0x242b940 = 0x1940
 
 libc_base
 
-![image](https://github.com/lhc328/pwn/blob/master/picture/20150ctffreenotex64level6x64/6.png)
+![image](https://raw.githubusercontent.com/lhc328/pwn/master/picture/20150ctffreenotex64level6x64/6.png)
 
 偏移为 0x7f4658fb9b78 - 0x7f4658c1e000 = 0x 39bb78(靶机偏移为0x3be7b8)
 
 ### 第二步 修改chunk的fd，bk，通过unlink操作，达到地址任意写
 
 先找到通过unlink的地址，由下图我们选择了chunk2，即heap+0x60
-![image](https://github.com/lhc328/pwn/blob/master/picture/20150ctffreenotex64level6x64/5.png)
+![image](https://raw.githubusercontent.com/lhc328/pwn/master/picture/20150ctffreenotex64level6x64/5.png)
 
 还记得上次的unlink吗，2018网鼎杯的babyheap，那是向前合并，这次我们来向后合并，先伪造chunk
 
@@ -71,7 +71,7 @@ new(len(payload02), payload02)
 delete(2)
 ```
 
-![image](https://github.com/lhc328/pwn/blob/master/picture/20150ctffreenotex64level6x64/7.png)
+![image](https://raw.githubusercontent.com/lhc328/pwn/master/picture/20150ctffreenotex64level6x64/7.png)
 
 free chunk2时，系统会检测chunk2 的flag位为0，prev_size为0x110，地址减0x110到0x51（fake chunk处），p指针指向fake chunk，unlink检测 p->fd->bk==p   p->bk ->fd ==p , 即0xbfd018 + 0x18 = 0xbfd030(上图是0x242030, 由于运行了两次，记住030就好了 -_-！！)    0xbfd020 + 0x10 = 0xbfd030
 
