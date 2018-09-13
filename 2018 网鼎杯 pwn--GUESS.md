@@ -1,10 +1,10 @@
 # 2018 网鼎杯 pwn--GUESS
 
-![image](https://github.com/lhc328/pwn/blob/master/picture/2018%E7%BD%91%E9%BC%8E%E6%9D%AFguess/1.png)
+![image](https://raw.githubusercontent.com/lhc328/pwn/master/picture/2018%E7%BD%91%E9%BC%8E%E6%9D%AFguess/1.png)
 
 放进ida查看一下，发现题目的要求是输入一段flag，要求与flag.txt文件里的内容相同，次数限制在3次。
 
-![image](https://github.com/lhc328/pwn/blob/master/picture/2018%E7%BD%91%E9%BC%8E%E6%9D%AFguess/2.png)
+![image](https://raw.githubusercontent.com/lhc328/pwn/master/picture/2018%E7%BD%91%E9%BC%8E%E6%9D%AFguess/2.png)
 
 checksec一下，明显的栈溢出漏洞，虽然开通了canary保护，但是flag已经读到栈里了。我们可以运用SSP(Stack Smashes Protect)
 
@@ -39,11 +39,11 @@ void __attribute__ ((noreturn)) internal_function __fortify_fail (const char *ms
 
 ### 第一步 找到存储arg[0]的地址
 
-![image](https://github.com/lhc328/pwn/blob/master/picture/2018%E7%BD%91%E9%BC%8E%E6%9D%AFguess/3.png)
+![image](https://raw.githubusercontent.com/lhc328/pwn/master/picture/2018%E7%BD%91%E9%BC%8E%E6%9D%AFguess/3.png)
 
 用gdb来查看，在_strcmp函数那下断点，运行，我们输入一个‘a’。
 
-![image](https://github.com/lhc328/pwn/blob/master/picture/2018%E7%BD%91%E9%BC%8E%E6%9D%AFguess/4.png)
+![image](https://raw.githubusercontent.com/lhc328/pwn/master/picture/2018%E7%BD%91%E9%BC%8E%E6%9D%AFguess/4.png)
 
 可见 agrv[0]地址为0x7fffffffe388, 我们输入的地址为 0x7fffffffe260,距离是0x128,我们要覆盖的范围就是0x128
 
@@ -72,7 +72,7 @@ void __attribute__ ((noreturn)) internal_function __fortify_fail (const char *ms
 其中value是一个以”\0″结束的C语言类型的字符串，代表指针该环境变量的值
 一般我们见到的name都是大写，但这只是一个惯例
 
-![image](https://github.com/lhc328/pwn/blob/master/picture/2018%E7%BD%91%E9%BC%8E%E6%9D%AFguess/5.png)
+![image](https://raw.githubusercontent.com/lhc328/pwn/master/picture/2018%E7%BD%91%E9%BC%8E%E6%9D%AFguess/5.png)
 
 可求出 stack_base与environ 地址差为 0x7fffffffe398 - 0x7fffffffe200 = 0x198
 
