@@ -1,6 +1,6 @@
 题目四个功能 alloc fill free dump
 
-![image](https://github.com/lhc328/pwn/blob/master/picture/20170ctfbabyheap/1.png)
+![image](https://raw.githubusercontent.com/lhc328/pwn/master/picture/20170ctfbabyheap/1.png)
 
 （fast chunk 没有标志位 没有bk 不会合并）
 
@@ -26,7 +26,7 @@
 	
     新建两个块，用chunk0覆盖掉chunk1的头
 
-![image](https://github.com/lhc328/pwn/blob/master/picture/20170ctfbabyheap/2.png)
+![image](https://raw.githubusercontent.com/lhc328/pwn/master/picture/20170ctfbabyheap/2.png)
 	
     alloc(0x100)
     fill(2, 0x20, 'c'*0x10+p64(0)+p64(0x71))
@@ -42,8 +42,8 @@
   利用chunk1修复chunk2的头，再申请一个chunk3，以防chunk2被合并，把chunk2 free掉，再把chunk1 dump出来，main_arena就出来了
 
 
-![image](https://github.com/lhc328/pwn/blob/master/picture/20170ctfbabyheap/3.png)
-![image](https://github.com/lhc328/pwn/blob/master/picture/20170ctfbabyheap/4.png)
+![image](https://raw.githubusercontent.com/lhc328/pwn/master/picture/20170ctfbabyheap/3.png)
+![image](https://raw.githubusercontent.com/lhc328/pwn/master/picture/20170ctfbabyheap/4.png)
 
 
 
@@ -83,21 +83,21 @@
    free掉两个chunk，然后修改chunk的fd为malloc_hook的地址，但系统会检测fd指向chunk的头size是否适合，所以我们找找malloc_hook地址前的数据，发现把地址偏移一下，便可构造出size为0x7f的chunk头，所以fd的内容应为malloc_hook地址加偏移量
 
 
- ![image](https://github.com/lhc328/pwn/blob/master/picture/20170ctfbabyheap/5.png)
+ ![image](https://raw.githubusercontent.com/lhc328/pwn/master/picture/20170ctfbabyheap/5.png)
 
     malloc_hook偏移为0x3a5610
 
 
- ![image](https://github.com/lhc328/pwn/blob/master/picture/20170ctfbabyheap/6.png)
+ ![image](https://raw.githubusercontent.com/lhc328/pwn/master/picture/20170ctfbabyheap/6.png)
 
    可见，malloc_hook上方存在0x7f，可以伪造头，只要把地址偏移一下就可以通过检查建立一个0x60的chunk，然后填充数据修改malloc内容。  偏移为 0x10+0x8+0x3+0x8。
 
- ![image](https://github.com/lhc328/pwn/blob/master/picture/20170ctfbabyheap/7.png)
+ ![image](https://raw.githubusercontent.com/lhc328/pwn/master/picture/20170ctfbabyheap/7.png)
 
 
    shellcode依然由one_gadget取得
 
- ![image](https://github.com/lhc328/pwn/blob/master/picture/20170ctfbabyheap/8.png)
+ ![image](https://raw.githubusercontent.com/lhc328/pwn/master/picture/20170ctfbabyheap/8.png)
 
 
 执行alloc，就会getshell。
