@@ -2,11 +2,11 @@
 
 题目有四个功能 new   edit    show    delete
 
-![屏幕截图(58)](C:\Users\kOX\Pictures\Screenshots\屏幕截图(58).png)
+![image](https://raw.githubusercontent.com/lhc328/pwn/master/picture/2018%E7%BD%91%E9%BC%8E%E6%9D%AFbabyheap/1.png)
 
 delete函数中 free存在指针没置零，可以造成UAF
 
-![1](F:\2018网鼎杯\babyheap_50dc3a21597ea49ed06895a2bcc77684\babyheap\1.png)
+![image](https://raw.githubusercontent.com/lhc328/pwn/master/picture/2018%E7%BD%91%E9%BC%8E%E6%9D%AFbabyheap/2.png)
 
 其中特别注意  块只能建9块   修改只能改3次
 
@@ -26,7 +26,7 @@ delete函数中 free存在指针没置零，可以造成UAF
 
 ​	连续free两个chunk，第二个的fd便是第一个地址
 
-![屏幕截图(60)](C:\Users\kOX\Pictures\Screenshots\屏幕截图(60).png)
+![image](https://raw.githubusercontent.com/lhc328/pwn/master/picture/2018%E7%BD%91%E9%BC%8E%E6%9D%AFbabyheap/3.png)
 
 ### 第二步 求出libc base地址
 
@@ -46,19 +46,19 @@ alloc(7,p64(0)+p64(0xa1)+'\n')
 
 ​	new第二个新块，p64(0)+p64(0xa1)刚好覆盖掉chunk1的头，厉害厉害
 
-![屏幕截图(61)](C:\Users\kOX\Pictures\Screenshots\屏幕截图(61).png)
+![image](https://raw.githubusercontent.com/lhc328/pwn/master/picture/2018%E7%BD%91%E9%BC%8E%E6%9D%AFbabyheap/4.png)
 
 ​	万事俱备，只欠一free，在free之前，我们还要学习一点厉害的东西——unlink
 
 ​	当free一个chunk时，系统会检测前一个chunk和后一个chunk是否为free，每个chunk的头都有prev_size和size，当前一个chunk为free，prev_size为前chunk的大小，并且size的flag位为0，否则prev_size为0，size的flag为1。 free chunk1时，chunk1头的prev_size为0，size为0xa1,flag位为1，即前一chunk不为free，chunk1位置加它的size，即加0xa1，到达下一chunk4，看chunk5的头（0x30,0x30）prev_size为0x30，size为0x30，flag位为0，表示chunk5的前一个chunk4为free，则chunk1和chunk4合并，p指针指向chunk4。 进行unlink操作，unlink操作要检查p->fd->bk ==  p,  p->bk->fd == p。我们在chunk4构造了fd和bk，0x602080是chunk4的ptr，p->fd->bk 即 0x602068+0x18=0x602080 刚好指向 chunk4，p->bk->fd 即 0x602070+0x10 = 0x602080，通过验证。完成unlink操作后，chunk4的指针内容改为0x602068 即chunk4的地址在chunk1的指针地址，修改chunk4内容即修改chunk1的地址，然后修改chunk1达到 任意地址写。
 
-![屏幕截图(68)](C:\Users\kOX\Pictures\Screenshots\屏幕截图(68).png)
+![image](https://raw.githubusercontent.com/lhc328/pwn/master/picture/2018%E7%BD%91%E9%BC%8E%E6%9D%AFbabyheap/5.png)
 
 free chunk1完成后，chunk1的fd指向main_arena
 
-​	![屏幕截图(62)](C:\Users\kOX\Pictures\Screenshots\屏幕截图(62).png)
+![image](https://raw.githubusercontent.com/lhc328/pwn/master/picture/2018%E7%BD%91%E9%BC%8E%E6%9D%AFbabyheap/6.png)
 
-![屏幕截图(63)](C:\Users\kOX\Pictures\Screenshots\屏幕截图(63).png)
+![image](https://raw.githubusercontent.com/lhc328/pwn/master/picture/2018%E7%BD%91%E9%BC%8E%E6%9D%AFbabyheap/7.png)
 
 求出libc_adr和main_arena偏移值：0x7fa0dfc6db78 - 0x7fa0fd8d2000 = 0x39bb78
 
@@ -66,7 +66,7 @@ free chunk1完成后，chunk1的fd指向main_arena
 
 求靶机偏移值，利用malloc_hook的偏移差值
 
-![屏幕截图(64)](C:\Users\kOX\Pictures\Screenshots\屏幕截图(64).png)
+![image](https://raw.githubusercontent.com/lhc328/pwn/master/picture/2018%E7%BD%91%E9%BC%8E%E6%9D%AFbabyheap/8.png)
 
 我机malloc_hook偏移：0x7fa0dfc6db10 - 0x7fa0fd8d2000 = 0x39bb10
 
@@ -78,17 +78,17 @@ free chunk1完成后，chunk1的fd指向main_arena
 
 ### 第三步 写入shellocode并执行
 
-​	![屏幕截图(66)](C:\Users\kOX\Pictures\Screenshots\屏幕截图(66).png)
+![image](https://raw.githubusercontent.com/lhc328/pwn/master/picture/2018%E7%BD%91%E9%BC%8E%E6%9D%AFbabyheap/9.png)
 
 往free_hook中写入shellcode，再执行free()操作，等于执行getshell，上图显示 free_hook的偏移值为0x3c67a8，shellcode地址的偏移值为0x45216
 
-![屏幕截图(68)](C:\Users\kOX\Pictures\Screenshots\屏幕截图(68).png)
+![image](https://raw.githubusercontent.com/lhc328/pwn/master/picture/2018%E7%BD%91%E9%BC%8E%E6%9D%AFbabyheap/5.png)
 
 修改chunk4的内容为free_hook的地址，等于把chunk1块指向free_hook，修改chunk1就等于修改free_hook的内容。
 
 修改chun1内容为shellcode地址，即修改free_hook内容为shellcode地址，这里我改为aaaaaaaa滑稽
 
-![屏幕截图(69)](C:\Users\kOX\Pictures\Screenshots\屏幕截图(69).png)
+![image](https://raw.githubusercontent.com/lhc328/pwn/master/picture/2018%E7%BD%91%E9%BC%8E%E6%9D%AFbabyheap/10.png)
 
 执行free，就会getshell了。
 
