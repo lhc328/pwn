@@ -99,7 +99,7 @@ int sub_4008E3()
   
   ```
   gdb-peda$ p *stdout
-$1 = {
+    $1 = {
   _flags = 0xfbad2887, 
   _IO_read_ptr = 0x7f0bb54b46a3 <_IO_2_1_stdout_+131> "\n", 
   _IO_read_end = 0x7f0bb54b46a3 <_IO_2_1_stdout_+131> "\n", 
@@ -126,10 +126,10 @@ $1 = {
   _wide_data = 0x7f0bb54b37a0 <_IO_wide_data_1>, 
   _freeres_list = 0x0, 
   _freeres_buf = 0x0, 
-  __pad5 = 0x0, 
-  _mode = 0xffffffff, 
-  _unused2 = '\000' <repeats 19 times>
-}
+     __pad5 = 0x0, 
+     _mode = 0xffffffff, 
+     _unused2 = '\000' <repeats 19 times>
+    }
 
   ```
 
