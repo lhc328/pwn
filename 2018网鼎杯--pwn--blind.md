@@ -3,12 +3,22 @@
 题目有三个功能 new change  release 没有提供show，是真瞎啊，瞎子退团吧，我奶不动你
 
 ```
+1.new
+2.change
+3.release
+4.exit
 
 ```
 
 checksec：
 
-```
+```    
+    Arch:     amd64-64-little
+    RELRO:    Full RELRO
+    Stack:    Canary found
+    NX:       NX enabled
+    PIE:      No PIE (0x400000)
+
 
 ```
 
