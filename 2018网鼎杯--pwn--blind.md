@@ -12,14 +12,12 @@
 
 checksec：
 
-```    
-    Arch:     amd64-64-little
+```
+	Arch:     amd64-64-little
     RELRO:    Full RELRO
     Stack:    Canary found
     NX:       NX enabled
     PIE:      No PIE (0x400000)
-
-
 ```
 
 没开pie。
@@ -290,7 +288,7 @@ self._freeres_buf = 0
 self.__pad5 = 0
 self._mode = 0
 self._unused2 = [0 for i in range(15 * 4 - 5 * _BITS / 8)]
-self.vtable = 0x4008e3
+self.vtable = 0x6021c8   <<<<-----chunk4
 ```
 
 最后，把stdout的指针指向0x602090
