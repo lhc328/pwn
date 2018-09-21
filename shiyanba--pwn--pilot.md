@@ -1,6 +1,12 @@
 # shiyanba--pwn--pilot
 
 ```
+    Arch:     amd64-64-little
+    RELRO:    Partial RELRO
+    Stack:    No canary found
+    NX:       NX disabled
+    PIE:      No PIE (0x400000)
+    RWX:      Has RWX segments
 
 ```
 
