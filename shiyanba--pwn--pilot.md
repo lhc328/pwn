@@ -55,13 +55,13 @@ shellcode = "\x48\x31\xd2\x48\xbb\x2f\x2f\x62\x69\x6e\x2f\x73\x68\x48\xc1\xeb\x0
 
 原因是  在push rdi  时 把我们的shellcode给覆盖了
 
-![1](C:\Users\kOX\Desktop\1.png)
+![image](https://raw.githubusercontent.com/lhc328/pwn/master/picture/shiyanba-pilot/1.png)
 
-![2](C:\Users\kOX\Desktop\2.png)
+![image](https://raw.githubusercontent.com/lhc328/pwn/master/picture/shiyanba-pilot/2.png)
 
-![3](C:\Users\kOX\Desktop\3.png)
+![image](https://raw.githubusercontent.com/lhc328/pwn/master/picture/shiyanba-pilot/3.png)
 
-![4](C:\Users\kOX\Desktop\4.png)
+![image](https://raw.githubusercontent.com/lhc328/pwn/master/picture/shiyanba-pilot/4.png)
 
 我们可以找短一点的shellcode，但比较难找
 
