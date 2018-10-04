@@ -5,6 +5,11 @@
 checksec
 
 ```
+    Arch:     amd64-64-little
+    RELRO:    Partial RELRO
+    Stack:    Canary found
+    NX:       NX enabled
+    PIE:      No PIE (0x400000)
 
 ```
 
