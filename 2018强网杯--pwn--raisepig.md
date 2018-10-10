@@ -125,7 +125,6 @@ print"data=",hex(data)
 ```
 
 
-
 2.修改__malloc_hook函数的地址为我们的system"/bin/sh"的地址
 
 double free
@@ -149,7 +148,8 @@ add(0x60,'\x00\x00\x00'+p64(one),"iiii")   #改写malloc
 ```
 
 3.double free 触发__malloc_hook执行，便会转换到执行我们的shell。
-
+	free两次
+getshell
 exp:
 
 ```python
